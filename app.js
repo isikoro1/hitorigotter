@@ -355,7 +355,7 @@ function renderPost(post, showContext = false) {
 
   node.querySelector(".post-time").textContent = formatDate(post.createdAt);
   node.querySelector(".post-time").dateTime = post.createdAt;
-  renderMarkdownish(post.text, node.querySelector(".post-text"));
+  renderMarkdownish(post, node.querySelector(".post-text"));
 
   const tagContainer = node.querySelector(".post-tags");
   extractTags(post.text).forEach((tag) => {
@@ -387,12 +387,12 @@ function renderPost(post, showContext = false) {
   return node;
 }
 
-function renderMarkdownish(text, container) {
+function renderMarkdownish(post, container) {
   container.replaceChildren();
-  const lines = text.split(/\r?\n/);
+  const lines = post.text.split(/\r?\n/);
   let list = null;
 
-  lines.forEach((line) => {
+  lines.forEach((line, lineIndex) => {
     const todoMatch = line.match(/^\s*-\s+\[( |x|X)\]\s+(.*)$/);
     const listMatch = line.match(/^\s*-\s+(.*)$/);
 
@@ -406,7 +406,7 @@ function renderMarkdownish(text, container) {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = todoMatch[1].toLowerCase() === "x";
-        checkbox.disabled = true;
+        checkbox.addEventListener("change", () => toggleTodo(post.id, lineIndex, checkbox.checked));
         li.append(checkbox, " ");
         appendInlineText(li, todoMatch[2]);
       } else {
@@ -425,6 +425,21 @@ function renderMarkdownish(text, container) {
     }
     container.append(paragraph);
   });
+}
+
+function toggleTodo(postId, lineIndex, checked) {
+  const post = activeAccount().posts.find((item) => item.id === postId);
+  if (!post) return;
+  const lines = post.text.split(/\r?\n/);
+  const line = lines[lineIndex];
+  if (!/^\s*-\s+\[( |x|X)\]\s+/.test(line)) return;
+  lines[lineIndex] = line.replace(
+    /^(\s*-\s+\[)( |x|X)(\]\s+)/,
+    `$1${checked ? "x" : " "}$3`,
+  );
+  post.text = lines.join("\n");
+  saveState();
+  render();
 }
 
 function appendInlineText(parent, text) {

@@ -556,6 +556,7 @@ body[data-theme="terminal"] .bottom-nav {
   padding: 0;
   margin: 0 0.35rem 0 0;
   accent-color: var(--accent);
+  cursor: pointer;
   vertical-align: text-bottom;
 }
 
