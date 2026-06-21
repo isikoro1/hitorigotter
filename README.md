@@ -2,6 +2,8 @@
 
 ブラウザだけで動く、ひとりごと用のローカルメモアプリです。
 
+https://isikoro1.github.io/hitorigotter/
+
 ## 使い方
 
 `index.html` をブラウザで開くと起動します。投稿とアカウントは `localStorage` に保存されます。
