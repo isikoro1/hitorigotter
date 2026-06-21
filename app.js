@@ -529,11 +529,16 @@ function replyToPost(parentId) {
 
 function quotePost(shortId) {
   setScreen("home");
-  const prefix = elements.postInput.value.trim() ? "\n" : "";
-  elements.postInput.value = `${elements.postInput.value}${prefix}>>${shortId}\n`;
-  elements.postInput.focus();
-  elements.postInput.setSelectionRange(elements.postInput.value.length, elements.postInput.value.length);
-  renderComposerState();
+  window.requestAnimationFrame(() => {
+    const prefix = elements.postInput.value.trim() ? "\n" : "";
+    elements.postInput.value = `${elements.postInput.value}${prefix}>>${shortId}\n`;
+    elements.postInput.focus();
+    elements.postInput.setSelectionRange(
+      elements.postInput.value.length,
+      elements.postInput.value.length,
+    );
+    renderComposerState();
+  });
 }
 
 function editPost(id) {
