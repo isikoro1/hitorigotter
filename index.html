@@ -23,6 +23,20 @@
               placeholder="今だけの考えを書く。#タグ、- リスト、- [ ] todo も使えます。"
             ></textarea>
             <div class="composer-foot">
+              <div class="insert-actions" aria-label="入力補助">
+                <button class="insert-button" id="insertListButton" type="button" title="リストを追加">
+                  <span aria-hidden="true">•</span>
+                  <span class="sr-only">リストを追加</span>
+                </button>
+                <button class="insert-button" id="insertTodoButton" type="button" title="todoを追加">
+                  <span aria-hidden="true">☐</span>
+                  <span class="sr-only">todoを追加</span>
+                </button>
+                <button class="insert-button" id="insertTagButton" type="button" title="ハッシュタグを追加">
+                  <span aria-hidden="true">#</span>
+                  <span class="sr-only">ハッシュタグを追加</span>
+                </button>
+              </div>
               <div class="post-actions">
                 <span id="charCount">0 / 1000</span>
                 <button class="primary-button" id="postButton" type="button">投稿</button>

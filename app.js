@@ -37,6 +37,9 @@ const elements = {
   navButtons: document.querySelectorAll(".bottom-nav-button"),
   postInput: document.querySelector("#postInput"),
   postButton: document.querySelector("#postButton"),
+  insertListButton: document.querySelector("#insertListButton"),
+  insertTodoButton: document.querySelector("#insertTodoButton"),
+  insertTagButton: document.querySelector("#insertTagButton"),
   charCount: document.querySelector("#charCount"),
   searchInput: document.querySelector("#searchInput"),
   sortSelect: document.querySelector("#sortSelect"),
@@ -76,6 +79,9 @@ function bindEvents() {
   });
 
   elements.postButton.addEventListener("click", addPost);
+  elements.insertListButton.addEventListener("click", () => insertComposerText("- "));
+  elements.insertTodoButton.addEventListener("click", () => insertComposerText("- [ ] "));
+  elements.insertTagButton.addEventListener("click", () => insertComposerText("#"));
   elements.searchInput.addEventListener("input", renderTimeline);
   elements.sortSelect.addEventListener("change", renderTimeline);
   elements.dateInput.addEventListener("change", renderTimeline);
@@ -237,6 +243,19 @@ function renderComposerState() {
   const length = elements.postInput.value.length;
   elements.charCount.textContent = `${length} / ${maxPostLength}`;
   elements.postButton.disabled = length === 0 || length > maxPostLength;
+}
+
+function insertComposerText(text) {
+  const input = elements.postInput;
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? input.value.length;
+  const needsLineBreak = start > 0 && input.value[start - 1] !== "\n";
+  const insertText = `${needsLineBreak ? "\n" : ""}${text}`;
+  input.value = `${input.value.slice(0, start)}${insertText}${input.value.slice(end)}`;
+  const cursor = start + insertText.length;
+  input.focus();
+  input.setSelectionRange(cursor, cursor);
+  renderComposerState();
 }
 
 function addPost(parentId = null, textOverride = "") {

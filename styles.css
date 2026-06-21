@@ -141,12 +141,14 @@ button {
 .post-header,
 .account-composer,
 .bottom-nav,
-.settings-button {
+.settings-button,
+.insert-actions {
   display: flex;
   align-items: center;
 }
 
-.post-actions {
+.post-actions,
+.insert-actions {
   gap: 8px;
 }
 
@@ -196,6 +198,7 @@ textarea:focus {
 .account-delete,
 .account-select,
 .bottom-nav-button,
+.insert-button,
 .post-menu summary,
 .post-menu button {
   border: 1px solid var(--line);
@@ -223,14 +226,25 @@ textarea:focus {
 }
 
 .composer-foot {
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .primary-button,
 .account-delete,
+.insert-button,
 .post-menu button {
   min-height: 36px;
   padding: 0 12px;
+}
+
+.insert-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  padding: 0;
+  font-weight: 800;
 }
 
 .primary-button {
