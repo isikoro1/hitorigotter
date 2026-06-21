@@ -112,7 +112,8 @@ button {
 .main-pane,
 .screen,
 .timeline,
-.account-list {
+.account-list,
+.analytics-grid {
   display: grid;
   gap: 14px;
 }
@@ -157,7 +158,8 @@ button {
 .tools-row,
 .account-composer,
 .account-item,
-.settings-button {
+.settings-button,
+.analytics-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -328,6 +330,7 @@ body[data-theme="dragon"] .tools-row,
 body[data-theme="dragon"] .account-composer,
 body[data-theme="dragon"] .account-item,
 body[data-theme="dragon"] .settings-button,
+body[data-theme="dragon"] .analytics-panel,
 body[data-theme="dragon"] .bottom-nav {
   border-width: 2px;
   box-shadow: none;
@@ -410,6 +413,7 @@ body[data-theme="terminal"] .account-composer,
 body[data-theme="terminal"] .account-item,
 body[data-theme="terminal"] .settings-button,
 body[data-theme="terminal"] .setting-row,
+body[data-theme="terminal"] .analytics-panel,
 body[data-theme="terminal"] .bottom-nav {
   border-radius: 0;
   box-shadow: none;
@@ -651,6 +655,74 @@ body[data-theme="terminal"] .bottom-nav {
   color: var(--muted);
 }
 
+.analytics-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.analytics-panel h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.bar-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-label,
+.bar-row strong {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.bar-track {
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-strong);
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.word-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.word-chip {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-strong);
+  color: var(--accent-strong);
+  padding: 0 10px;
+}
+
+.analytics-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .settings-screen {
   gap: 10px;
 }
@@ -740,7 +812,8 @@ body[data-theme="terminal"] .bottom-nav {
   .tools-row,
   .search-tools,
   .account-composer,
-  .account-item {
+  .account-item,
+  .analytics-grid {
     grid-template-columns: 1fr;
   }
 

@@ -84,6 +84,27 @@
           <section class="account-list" id="accountList" aria-label="アカウント一覧"></section>
         </section>
 
+        <section class="screen analytics-screen" id="analyticsScreen" hidden>
+          <section class="analytics-grid">
+            <article class="analytics-panel">
+              <h2>日別投稿数</h2>
+              <div class="bar-chart" id="dailyChart"></div>
+            </article>
+            <article class="analytics-panel">
+              <h2>時間帯</h2>
+              <div class="bar-chart compact" id="hourChart"></div>
+            </article>
+            <article class="analytics-panel">
+              <h2>曜日</h2>
+              <div class="bar-chart compact" id="weekdayChart"></div>
+            </article>
+            <article class="analytics-panel">
+              <h2>頻出語</h2>
+              <div class="word-list" id="wordList"></div>
+            </article>
+          </section>
+        </section>
+
         <section class="screen settings-screen" id="settingsScreen" hidden>
           <label class="setting-row">
             <span>テーマ</span>
@@ -136,6 +157,11 @@
       <button class="bottom-nav-button" data-screen="account" type="button" aria-label="アカウント">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0z" />
+        </svg>
+      </button>
+      <button class="bottom-nav-button" data-screen="analytics" type="button" aria-label="分析">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 20V4h2v14h14v2H4zm4-4V9h3v7H8zm5 0V6h3v10h-3zm5 0v-5h3v5h-3z" />
         </svg>
       </button>
       <button class="bottom-nav-button" data-screen="settings" type="button" aria-label="設定">

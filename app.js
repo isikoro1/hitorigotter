@@ -33,6 +33,7 @@ const elements = {
   homeScreen: document.querySelector("#homeScreen"),
   searchScreen: document.querySelector("#searchScreen"),
   accountScreen: document.querySelector("#accountScreen"),
+  analyticsScreen: document.querySelector("#analyticsScreen"),
   settingsScreen: document.querySelector("#settingsScreen"),
   navButtons: document.querySelectorAll(".bottom-nav-button"),
   postInput: document.querySelector("#postInput"),
@@ -51,6 +52,10 @@ const elements = {
   accountNameInput: document.querySelector("#accountNameInput"),
   addAccountButton: document.querySelector("#addAccountButton"),
   accountList: document.querySelector("#accountList"),
+  dailyChart: document.querySelector("#dailyChart"),
+  hourChart: document.querySelector("#hourChart"),
+  weekdayChart: document.querySelector("#weekdayChart"),
+  wordList: document.querySelector("#wordList"),
   enterToPostInput: document.querySelector("#enterToPostInput"),
   themeSelect: document.querySelector("#themeSelect"),
   exportButton: document.querySelector("#exportButton"),
@@ -197,6 +202,7 @@ function render() {
   renderComposerState();
   renderTimeline();
   renderAccounts();
+  renderAnalytics();
   renderSettings();
   window.setTimeout(focusHashPost, 0);
 }
@@ -213,6 +219,7 @@ function renderScreens() {
     home: elements.homeScreen,
     search: elements.searchScreen,
     account: elements.accountScreen,
+    analytics: elements.analyticsScreen,
     settings: elements.settingsScreen,
   };
 
@@ -588,6 +595,124 @@ function deleteAccount(id) {
   }
   saveState();
   render();
+}
+
+function renderAnalytics() {
+  const posts = activeAccount().posts;
+  renderBarChart(elements.dailyChart, getDailyCounts(posts), "投稿なし");
+  renderBarChart(elements.hourChart, getHourCounts(posts), "投稿なし");
+  renderBarChart(elements.weekdayChart, getWeekdayCounts(posts), "投稿なし");
+  renderWordList(getFrequentWords(posts));
+}
+
+function renderBarChart(container, items, emptyText) {
+  container.replaceChildren();
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "analytics-empty";
+    empty.textContent = emptyText;
+    container.append(empty);
+    return;
+  }
+
+  const max = Math.max(...items.map((item) => item.value), 1);
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.innerHTML = `
+      <span class="bar-label">${escapeHtml(item.label)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width: ${(item.value / max) * 100}%"></span></span>
+      <strong>${item.value}</strong>
+    `;
+    container.append(row);
+  });
+}
+
+function getDailyCounts(posts) {
+  const counts = new Map();
+  posts.forEach((post) => {
+    const key = new Date(post.createdAt).toISOString().slice(5, 10);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return [...counts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-14)
+    .map(([label, value]) => ({ label, value }));
+}
+
+function getHourCounts(posts) {
+  const counts = Array.from({ length: 24 }, (_, hour) => ({
+    label: `${String(hour).padStart(2, "0")}時`,
+    value: 0,
+  }));
+  posts.forEach((post) => {
+    counts[new Date(post.createdAt).getHours()].value += 1;
+  });
+  return counts.filter((item) => item.value > 0);
+}
+
+function getWeekdayCounts(posts) {
+  const labels = ["日", "月", "火", "水", "木", "金", "土"];
+  const counts = labels.map((label) => ({ label, value: 0 }));
+  posts.forEach((post) => {
+    counts[new Date(post.createdAt).getDay()].value += 1;
+  });
+  return counts.filter((item) => item.value > 0);
+}
+
+function getFrequentWords(posts) {
+  const stopWords = new Set([
+    "これ",
+    "それ",
+    "ため",
+    "こと",
+    "もの",
+    "する",
+    "ある",
+    "いる",
+    "です",
+    "ます",
+    "todo",
+  ]);
+  const counts = new Map();
+  posts.forEach((post) => {
+    const words = post.text
+      .replace(/#[A-Za-z0-9_\u3040-\u30ff\u3400-\u9fff-]+/g, " ")
+      .match(/[A-Za-z0-9_]{2,}|[\u3040-\u30ff\u3400-\u9fff]{2,}/g);
+    words?.forEach((word) => {
+      const key = word.toLowerCase();
+      if (stopWords.has(key)) return;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+  });
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([word, count]) => ({ word, count }));
+}
+
+function renderWordList(words) {
+  elements.wordList.replaceChildren();
+  if (words.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "analytics-empty";
+    empty.textContent = "集計できる単語がありません。";
+    elements.wordList.append(empty);
+    return;
+  }
+  const max = Math.max(...words.map((item) => item.count), 1);
+  words.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "word-chip";
+    button.style.fontSize = `${0.9 + (item.count / max) * 0.7}rem`;
+    button.textContent = `${item.word} ${item.count}`;
+    button.addEventListener("click", () => {
+      elements.searchInput.value = item.word;
+      setScreen("search");
+    });
+    elements.wordList.append(button);
+  });
 }
 
 function extractTags(text) {
