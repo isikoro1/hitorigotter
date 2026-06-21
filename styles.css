@@ -1,0 +1,470 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f2ea;
+  --panel: #fffdf8;
+  --panel-strong: #f0eadf;
+  --ink: #20211f;
+  --muted: #686b66;
+  --line: #d9d1c4;
+  --accent: #146b62;
+  --accent-strong: #0f514b;
+  --accent-soft: #d7efea;
+  --warning: #a83a32;
+  --shadow: 0 18px 48px rgba(35, 28, 20, 0.12);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(90deg, rgba(20, 107, 98, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(180, 85, 42, 0.07) 1px, transparent 1px),
+    var(--bg);
+  background-size: 48px 48px;
+  color: var(--ink);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.app-shell {
+  width: min(760px, calc(100% - 32px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px 0 96px;
+}
+
+.main-pane,
+.screen,
+.timeline,
+.account-list {
+  display: grid;
+  gap: 14px;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topbar strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.05rem;
+}
+
+.post-actions,
+.composer-foot,
+.post-header,
+.account-composer,
+.bottom-nav,
+.settings-button {
+  display: flex;
+  align-items: center;
+}
+
+.post-actions {
+  gap: 8px;
+}
+
+.composer,
+.tools-row,
+.account-composer,
+.account-item,
+.settings-button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: var(--shadow);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffefa;
+  color: var(--ink);
+  outline: none;
+}
+
+input,
+select {
+  height: 42px;
+  padding: 0 12px;
+}
+
+textarea {
+  min-height: 132px;
+  resize: vertical;
+  padding: 14px;
+  line-height: 1.65;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.primary-button,
+.account-delete,
+.account-select,
+.bottom-nav-button,
+.post-menu summary,
+.post-menu button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.composer {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.composer-foot {
+  justify-content: flex-end;
+}
+
+.primary-button,
+.account-delete,
+.post-menu button {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.primary-button {
+  border-color: #0d3c38;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+}
+
+.primary-button:disabled,
+.account-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tools-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 10px;
+  padding: 12px;
+}
+
+.post-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 10px 28px rgba(35, 28, 20, 0.08);
+}
+
+.post-card.pinned .post-line {
+  background: #b4552a;
+}
+
+.post-line {
+  background: var(--accent);
+}
+
+.post-content {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.post-header {
+  gap: 10px;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 2px solid #1e1f1d;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fffdf8;
+  box-shadow: 3px 3px 0 #1e1f1d;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.avatar.small {
+  width: 38px;
+  height: 38px;
+  font-size: 0.9rem;
+}
+
+.post-meta {
+  display: grid;
+  min-width: 0;
+}
+
+.post-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-time {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.post-menu {
+  position: relative;
+}
+
+.post-menu summary {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  list-style: none;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.post-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.post-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  display: grid;
+  gap: 6px;
+  min-width: 118px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 12px 28px rgba(35, 28, 20, 0.16);
+}
+
+.post-menu button {
+  text-align: left;
+}
+
+.post-menu .danger {
+  color: var(--warning);
+}
+
+.post-text {
+  margin: 0;
+  line-height: 1.72;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.post-tags span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--panel-strong);
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+}
+
+.account-delete {
+  color: var(--warning);
+}
+
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 36px 18px;
+  background: rgba(255, 253, 248, 0.65);
+  color: var(--muted);
+  text-align: center;
+}
+
+.account-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px;
+}
+
+.account-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 10px;
+}
+
+.account-item.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.account-select {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.account-select span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.account-select small {
+  color: var(--muted);
+}
+
+.settings-screen {
+  gap: 10px;
+}
+
+.settings-button {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.settings-button span:first-child {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  font-size: 1.2rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  z-index: 10;
+  justify-content: space-around;
+  width: min(420px, calc(100% - 32px));
+  height: 62px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 18px 48px rgba(35, 28, 20, 0.18);
+  transform: translateX(-50%);
+}
+
+.bottom-nav-button {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 44px;
+}
+
+.bottom-nav-button svg {
+  width: 23px;
+  height: 23px;
+  fill: currentColor;
+}
+
+.bottom-nav-button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+@media (max-width: 540px) {
+  .app-shell {
+    width: min(100% - 20px, 760px);
+    padding-top: 12px;
+  }
+
+  .composer,
+  .tools-row,
+  .account-composer {
+    padding: 14px;
+  }
+
+  .tools-row,
+  .account-composer,
+  .account-item {
+    grid-template-columns: 1fr;
+  }
+
+  .post-header {
+    align-items: flex-start;
+  }
+
+  .post-time {
+    margin-left: 0;
+  }
+}
