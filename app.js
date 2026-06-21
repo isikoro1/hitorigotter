@@ -256,7 +256,7 @@ function addPost(parentId = null, textOverride = "") {
     renderComposerState();
   }
   saveState();
-  renderTimeline();
+  render();
 }
 
 function renderTimeline() {
@@ -451,7 +451,7 @@ function editPost(id) {
   if (!nextText) return;
   post.text = nextText.slice(0, maxPostLength);
   saveState();
-  renderTimeline();
+  render();
 }
 
 function searchByTag(tag) {
