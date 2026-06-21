@@ -15,7 +15,7 @@ const defaultState = {
       posts: [
         {
           id: crypto.randomUUID(),
-          shortId: "first",
+          shortId: "1",
           text: "ここはローカルだけのメモ置き場です。\n- アカウントを分ける\n- [ ] todoを書く\n#first",
           pinned: false,
           parentId: null,
@@ -144,7 +144,7 @@ function normalizeState(value) {
 
 function normalizeAccount(account) {
   if (!account) return null;
-  return {
+  const normalized = {
     id: String(account.id || crypto.randomUUID()),
     name: String(account.name || "ひとりごったー").replace("hitorigotter", "ひとりごったー").slice(0, 28),
     posts: Array.isArray(account.posts)
@@ -154,6 +154,8 @@ function normalizeAccount(account) {
           .filter(Boolean)
       : [],
   };
+  ensureSequentialPostIds(normalized);
+  return normalized;
 }
 
 function normalizePost(post) {
@@ -161,7 +163,7 @@ function normalizePost(post) {
   const id = String(post.id || crypto.randomUUID());
   return {
     id,
-    shortId: String(post.shortId || makeShortId(id)),
+    shortId: String(post.shortId || ""),
     text: String(post.text || "").slice(0, maxPostLength),
     pinned: Boolean(post.pinned),
     parentId: post.parentId ? String(post.parentId) : null,
@@ -242,9 +244,10 @@ function addPost(parentId = null, textOverride = "") {
   if (!text) return;
 
   const id = crypto.randomUUID();
-  activeAccount().posts.unshift({
+  const account = activeAccount();
+  account.posts.unshift({
     id,
-    shortId: makeShortId(id),
+    shortId: nextSequentialPostId(account),
     text,
     pinned: false,
     parentId,
@@ -627,7 +630,11 @@ function importMarkdown(event) {
     try {
       const posts = markdownToPosts(String(reader.result));
       if (posts.length === 0) throw new Error("No posts");
-      activeAccount().posts.unshift(...posts);
+      const account = activeAccount();
+      posts.forEach((post) => {
+        post.shortId = nextSequentialPostId(account);
+        account.posts.unshift(post);
+      });
       saveState();
       render();
     } catch (error) {
@@ -684,7 +691,7 @@ function markdownToPosts(markdown) {
       const id = crypto.randomUUID();
       return {
         id,
-        shortId: makeShortId(id),
+        shortId: "",
         text: text.slice(0, maxPostLength),
         pinned: pinnedLine?.includes("true") || false,
         parentId: parentLine ? parentLine.replace("- parentId:", "").trim() || null : null,
@@ -709,8 +716,30 @@ function downloadText(text, filename, type) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function makeShortId(id) {
-  return id.replace(/-/g, "").slice(0, 8);
+function ensureSequentialPostIds(account) {
+  const used = new Set();
+  let next = 1;
+  account.posts
+    .slice()
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .forEach((post) => {
+      if (/^\d+$/.test(post.shortId) && !used.has(post.shortId)) {
+        used.add(post.shortId);
+        next = Math.max(next, Number(post.shortId) + 1);
+        return;
+      }
+      while (used.has(String(next))) next += 1;
+      post.shortId = String(next);
+      used.add(post.shortId);
+      next += 1;
+    });
+}
+
+function nextSequentialPostId(account) {
+  const max = account.posts.reduce((largest, post) => {
+    return /^\d+$/.test(post.shortId) ? Math.max(largest, Number(post.shortId)) : largest;
+  }, 0);
+  return String(max + 1);
 }
 
 function escapeHtml(value) {
