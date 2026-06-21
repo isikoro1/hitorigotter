@@ -355,8 +355,11 @@ function exportState() {
   const link = document.createElement("a");
   link.href = url;
   link.download = `hitorigotter-${new Date().toISOString().slice(0, 10)}.json`;
+  link.style.display = "none";
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function importState(event) {
