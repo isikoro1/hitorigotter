@@ -1,16 +1,24 @@
-const storageKey = "hitorigotter-web-state-v1";
+const storageKey = "hitorigotter-web-state-v2";
+const legacyStorageKey = "hitorigotter-web-state-v1";
+const maxPostLength = 1000;
 
 const defaultState = {
   activeAccountId: "default",
+  settings: {
+    enterToPost: false,
+    theme: "default",
+  },
   accounts: [
     {
       id: "default",
-      name: "hitorigotter",
+      name: "ひとりごったー",
       posts: [
         {
           id: crypto.randomUUID(),
-          text: "ここはローカルだけのメモ置き場です。アカウントを分けると、ジャンル別に書き残せます。 #first",
+          shortId: "first",
+          text: "ここはローカルだけのメモ置き場です。\n- アカウントを分ける\n- [ ] todoを書く\n#first",
           pinned: false,
+          parentId: null,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -32,14 +40,20 @@ const elements = {
   charCount: document.querySelector("#charCount"),
   searchInput: document.querySelector("#searchInput"),
   sortSelect: document.querySelector("#sortSelect"),
+  dateInput: document.querySelector("#dateInput"),
+  dateModeSelect: document.querySelector("#dateModeSelect"),
   homeTimeline: document.querySelector("#homeTimeline"),
   searchTimeline: document.querySelector("#searchTimeline"),
   activeAccountLabel: document.querySelector("#activeAccountLabel"),
   accountNameInput: document.querySelector("#accountNameInput"),
   addAccountButton: document.querySelector("#addAccountButton"),
   accountList: document.querySelector("#accountList"),
+  enterToPostInput: document.querySelector("#enterToPostInput"),
+  themeSelect: document.querySelector("#themeSelect"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
+  exportMarkdownButton: document.querySelector("#exportMarkdownButton"),
+  importMarkdownInput: document.querySelector("#importMarkdownInput"),
   postTemplate: document.querySelector("#postTemplate"),
 };
 
@@ -53,22 +67,41 @@ function bindEvents() {
 
   elements.postInput.addEventListener("input", renderComposerState);
   elements.postInput.addEventListener("keydown", (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    const modifierSubmit = (event.ctrlKey || event.metaKey) && event.key === "Enter";
+    const enterSubmit = state.settings.enterToPost && event.key === "Enter" && !event.shiftKey;
+    if (modifierSubmit || enterSubmit) {
       event.preventDefault();
       addPost();
     }
   });
+
   elements.postButton.addEventListener("click", addPost);
   elements.searchInput.addEventListener("input", renderTimeline);
   elements.sortSelect.addEventListener("change", renderTimeline);
+  elements.dateInput.addEventListener("change", renderTimeline);
+  elements.dateModeSelect.addEventListener("change", renderTimeline);
   elements.addAccountButton.addEventListener("click", addAccount);
+  elements.enterToPostInput.addEventListener("change", () => {
+    state.settings.enterToPost = elements.enterToPostInput.checked;
+    saveState();
+  });
+  elements.themeSelect.addEventListener("change", () => {
+    state.settings.theme = elements.themeSelect.value;
+    saveState();
+    applyTheme();
+  });
   elements.exportButton.addEventListener("click", exportState);
   elements.importInput.addEventListener("change", importState);
+  elements.exportMarkdownButton.addEventListener("click", exportMarkdown);
+  elements.importMarkdownInput.addEventListener("change", importMarkdown);
+  window.addEventListener("hashchange", focusHashPost);
 }
 
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey));
+    const saved =
+      JSON.parse(localStorage.getItem(storageKey)) ||
+      JSON.parse(localStorage.getItem(legacyStorageKey));
     return normalizeState(saved);
   } catch {
     localStorage.removeItem(storageKey);
@@ -84,6 +117,10 @@ function normalizeState(value) {
         activeAccountId: accounts.some((account) => account.id === value.activeAccountId)
           ? value.activeAccountId
           : accounts[0].id,
+        settings: {
+          enterToPost: Boolean(value.settings?.enterToPost),
+          theme: normalizeTheme(value.settings?.theme),
+        },
         accounts,
       };
     }
@@ -92,11 +129,12 @@ function normalizeState(value) {
   if (value?.profile && Array.isArray(value.posts)) {
     const account = normalizeAccount({
       id: "default",
-      name: value.profile.name || "hitorigotter",
+      name: value.profile.name || "ひとりごったー",
       posts: value.posts,
     });
     return {
       activeAccountId: account.id,
+      settings: structuredClone(defaultState.settings),
       accounts: [account],
     };
   }
@@ -108,20 +146,33 @@ function normalizeAccount(account) {
   if (!account) return null;
   return {
     id: String(account.id || crypto.randomUUID()),
-    name: String(account.name || "hitorigotter").slice(0, 28),
+    name: String(account.name || "ひとりごったー").replace("hitorigotter", "ひとりごったー").slice(0, 28),
     posts: Array.isArray(account.posts)
       ? account.posts
           .filter((post) => !post.archived)
-          .map((post) => ({
-            id: String(post.id || crypto.randomUUID()),
-            text: String(post.text || "").slice(0, 280),
-            pinned: Boolean(post.pinned),
-            createdAt: Number.isNaN(new Date(post.createdAt).getTime())
-              ? new Date().toISOString()
-              : new Date(post.createdAt).toISOString(),
-          }))
+          .map(normalizePost)
+          .filter(Boolean)
       : [],
   };
+}
+
+function normalizePost(post) {
+  if (!post) return null;
+  const id = String(post.id || crypto.randomUUID());
+  return {
+    id,
+    shortId: String(post.shortId || makeShortId(id)),
+    text: String(post.text || "").slice(0, maxPostLength),
+    pinned: Boolean(post.pinned),
+    parentId: post.parentId ? String(post.parentId) : null,
+    createdAt: Number.isNaN(new Date(post.createdAt).getTime())
+      ? new Date().toISOString()
+      : new Date(post.createdAt).toISOString(),
+  };
+}
+
+function normalizeTheme(value) {
+  return ["default", "terminal", "dragon", "line"].includes(value) ? value : "default";
 }
 
 function saveState() {
@@ -129,10 +180,13 @@ function saveState() {
 }
 
 function render() {
+  applyTheme();
   renderScreens();
   renderComposerState();
   renderTimeline();
   renderAccounts();
+  renderSettings();
+  window.setTimeout(focusHashPost, 0);
 }
 
 function setScreen(screen) {
@@ -161,6 +215,15 @@ function renderScreens() {
   elements.activeAccountLabel.textContent = activeAccount().name;
 }
 
+function renderSettings() {
+  elements.enterToPostInput.checked = state.settings.enterToPost;
+  elements.themeSelect.value = state.settings.theme;
+}
+
+function applyTheme() {
+  document.body.dataset.theme = state.settings.theme;
+}
+
 function activeAccount() {
   return (
     state.accounts.find((account) => account.id === state.activeAccountId) ||
@@ -170,24 +233,29 @@ function activeAccount() {
 
 function renderComposerState() {
   const length = elements.postInput.value.length;
-  elements.charCount.textContent = `${length} / 280`;
-  elements.postButton.disabled = length === 0 || length > 280;
+  elements.charCount.textContent = `${length} / ${maxPostLength}`;
+  elements.postButton.disabled = length === 0 || length > maxPostLength;
 }
 
-function addPost() {
-  const text = elements.postInput.value.trim();
+function addPost(parentId = null, textOverride = "") {
+  const text = (textOverride || elements.postInput.value).trim();
   if (!text) return;
 
+  const id = crypto.randomUUID();
   activeAccount().posts.unshift({
-    id: crypto.randomUUID(),
+    id,
+    shortId: makeShortId(id),
     text,
     pinned: false,
+    parentId,
     createdAt: new Date().toISOString(),
   });
 
-  elements.postInput.value = "";
+  if (!textOverride) {
+    elements.postInput.value = "";
+    renderComposerState();
+  }
   saveState();
-  renderComposerState();
   renderTimeline();
 }
 
@@ -207,45 +275,192 @@ function renderTimeline() {
   }
 
   posts.forEach((post) => {
-    const node = elements.postTemplate.content.firstElementChild.cloneNode(true);
-    node.classList.toggle("pinned", post.pinned);
-    node.querySelector(".post-avatar").textContent = getInitial();
-    node.querySelector(".post-name").textContent = activeAccount().name;
-    node.querySelector(".post-time").textContent = formatDate(post.createdAt);
-    node.querySelector(".post-time").dateTime = post.createdAt;
-    node.querySelector(".post-text").textContent = post.text;
-
-    const tagContainer = node.querySelector(".post-tags");
-    extractTags(post.text).forEach((tag) => {
-      const item = document.createElement("span");
-      item.textContent = `#${tag}`;
-      tagContainer.append(item);
-    });
-
-    const pinButton = node.querySelector(".pin-button");
-    pinButton.textContent = post.pinned ? "固定を外す" : "固定";
-    pinButton.addEventListener("click", () => togglePinPost(post.id));
-    node.querySelector(".delete-button").addEventListener("click", () => deletePost(post.id));
-
-    container.append(node);
+    container.append(renderPost(post, currentScreen === "search"));
   });
+}
+
+function renderPost(post, showContext = false) {
+  const node = elements.postTemplate.content.firstElementChild.cloneNode(true);
+  node.id = `post-${post.shortId}`;
+  node.dataset.postId = post.shortId;
+  node.classList.toggle("pinned", post.pinned);
+  node.classList.toggle("reply-card", Boolean(post.parentId));
+  node.querySelector(".post-avatar").textContent = getInitial();
+  node.querySelector(".post-name").textContent = activeAccount().name;
+
+  const idLink = node.querySelector(".post-id-link");
+  idLink.textContent = `#${post.shortId}`;
+  idLink.href = `#post-${post.shortId}`;
+  idLink.addEventListener("click", () => copyPostLink(post.shortId));
+
+  node.querySelector(".post-time").textContent = formatDate(post.createdAt);
+  node.querySelector(".post-time").dateTime = post.createdAt;
+  renderMarkdownish(post.text, node.querySelector(".post-text"));
+
+  const tagContainer = node.querySelector(".post-tags");
+  extractTags(post.text).forEach((tag) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.textContent = `#${tag}`;
+    item.addEventListener("click", () => searchByTag(tag));
+    tagContainer.append(item);
+  });
+
+  if (showContext && post.parentId) {
+    const context = document.createElement("span");
+    context.className = "reply-context";
+    context.textContent = "返信";
+    tagContainer.prepend(context);
+  }
+
+  const pinButton = node.querySelector(".pin-button");
+  pinButton.textContent = post.pinned ? "固定を外す" : "固定";
+  pinButton.addEventListener("click", () => togglePinPost(post.id));
+  node.querySelector(".reply-button").addEventListener("click", () => replyToPost(post.id));
+  node.querySelector(".delete-button").addEventListener("click", () => deletePost(post.id));
+
+  const replies = getReplies(post.id);
+  const replyList = node.querySelector(".reply-list");
+  replies.forEach((reply) => replyList.append(renderPost(reply)));
+
+  return node;
+}
+
+function renderMarkdownish(text, container) {
+  container.replaceChildren();
+  const lines = text.split(/\r?\n/);
+  let list = null;
+
+  lines.forEach((line) => {
+    const todoMatch = line.match(/^\s*-\s+\[( |x|X)\]\s+(.*)$/);
+    const listMatch = line.match(/^\s*-\s+(.*)$/);
+
+    if (todoMatch || listMatch) {
+      if (!list) {
+        list = document.createElement("ul");
+        container.append(list);
+      }
+      const li = document.createElement("li");
+      if (todoMatch) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todoMatch[1].toLowerCase() === "x";
+        checkbox.disabled = true;
+        li.append(checkbox, " ");
+        appendInlineText(li, todoMatch[2]);
+      } else {
+        appendInlineText(li, listMatch[1]);
+      }
+      list.append(li);
+      return;
+    }
+
+    list = null;
+    const paragraph = document.createElement("p");
+    if (line.trim()) {
+      appendInlineText(paragraph, line);
+    } else {
+      paragraph.append(document.createElement("br"));
+    }
+    container.append(paragraph);
+  });
+}
+
+function appendInlineText(parent, text) {
+  const pattern = /(#([A-Za-z0-9_\u3040-\u30ff\u3400-\u9fff-]+)|@?post:([A-Za-z0-9-]+)|#([A-Za-z0-9]{4,12}))/g;
+  let lastIndex = 0;
+  for (const match of text.matchAll(pattern)) {
+    parent.append(document.createTextNode(text.slice(lastIndex, match.index)));
+    if (match[2]) {
+      const button = document.createElement("button");
+      button.className = "inline-tag";
+      button.type = "button";
+      button.textContent = `#${match[2]}`;
+      button.addEventListener("click", () => searchByTag(match[2]));
+      parent.append(button);
+    } else {
+      const id = match[3] || match[4];
+      const link = document.createElement("a");
+      link.href = `#post-${id}`;
+      link.textContent = match[0];
+      link.addEventListener("click", () => copyPostLink(id));
+      parent.append(link);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  parent.append(document.createTextNode(text.slice(lastIndex)));
 }
 
 function getVisiblePosts() {
   const query = elements.searchInput.value.trim().toLowerCase();
   const direction = elements.sortSelect.value;
+  const dateValue = elements.dateInput.value;
+  const dateMode = elements.dateModeSelect.value;
 
   return activeAccount()
     .posts.filter((post) => {
-      if (currentScreen !== "search" || !query) return true;
-      const haystack = `${post.text} ${extractTags(post.text).join(" ")}`.toLowerCase();
-      return haystack.includes(query);
+      if (currentScreen !== "search" && post.parentId) return false;
+
+      if (currentScreen === "search") {
+        if (query) {
+          const haystack = `${post.shortId} ${post.text} ${extractTags(post.text).join(" ")}`.toLowerCase();
+          if (!haystack.includes(query.replace(/^#/, "")) && !haystack.includes(query)) {
+            return false;
+          }
+        }
+        if (!matchesDateFilter(post, dateValue, dateMode)) return false;
+      }
+
+      return true;
     })
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       const result = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return direction === "newest" ? result : -result;
     });
+}
+
+function matchesDateFilter(post, dateValue, dateMode) {
+  if (!dateValue || dateMode === "any") return true;
+  const postDate = new Date(post.createdAt).toISOString().slice(0, 10);
+  if (dateMode === "on") return postDate === dateValue;
+  if (dateMode === "since") return postDate >= dateValue;
+  if (dateMode === "until") return postDate <= dateValue;
+  return true;
+}
+
+function getReplies(parentId) {
+  return activeAccount()
+    .posts.filter((post) => post.parentId === parentId)
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
+
+function replyToPost(parentId) {
+  const text = window.prompt("返信を書く");
+  if (!text) return;
+  addPost(parentId, text);
+}
+
+function searchByTag(tag) {
+  elements.searchInput.value = `#${tag}`;
+  elements.dateModeSelect.value = "any";
+  setScreen("search");
+}
+
+function copyPostLink(shortId) {
+  const url = `${location.origin}${location.pathname}#post-${shortId}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).catch(() => {});
+  }
+}
+
+function focusHashPost() {
+  if (!location.hash.startsWith("#post-")) return;
+  const post = document.querySelector(location.hash);
+  if (!post) return;
+  post.scrollIntoView({ block: "center" });
+  post.classList.add("focused");
+  window.setTimeout(() => post.classList.remove("focused"), 1600);
 }
 
 function togglePinPost(id) {
@@ -260,11 +475,17 @@ function deletePost(id) {
   const account = activeAccount();
   const post = account.posts.find((item) => item.id === id);
   if (!post) return;
-  const confirmed = window.confirm("この投稿を削除しますか。");
+  const confirmed = window.confirm("この投稿と返信を削除しますか。");
   if (!confirmed) return;
-  account.posts = account.posts.filter((item) => item.id !== id);
+  const replyIds = collectReplyIds(id);
+  account.posts = account.posts.filter((item) => item.id !== id && !replyIds.includes(item.id));
   saveState();
   renderTimeline();
+}
+
+function collectReplyIds(parentId) {
+  const direct = activeAccount().posts.filter((post) => post.parentId === parentId);
+  return direct.flatMap((post) => [post.id, ...collectReplyIds(post.id)]);
 }
 
 function addAccount() {
@@ -346,20 +567,15 @@ function formatDate(value) {
 }
 
 function getInitial() {
-  return (activeAccount().name || "h").trim().charAt(0) || "h";
+  return (activeAccount().name || "ひ").trim().charAt(0) || "ひ";
 }
 
 function exportState() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `hitorigotter-${new Date().toISOString().slice(0, 10)}.json`;
-  link.style.display = "none";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  downloadText(
+    JSON.stringify(state, null, 2),
+    `hitorigotter-${new Date().toISOString().slice(0, 10)}.json`,
+    "application/json",
+  );
 }
 
 function importState(event) {
@@ -379,6 +595,109 @@ function importState(event) {
     }
   });
   reader.readAsText(file);
+}
+
+function exportMarkdown() {
+  downloadText(
+    stateToMarkdown(),
+    `hitorigotter-${new Date().toISOString().slice(0, 10)}.md`,
+    "text/markdown",
+  );
+}
+
+function importMarkdown(event) {
+  const [file] = event.target.files;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const posts = markdownToPosts(String(reader.result));
+      if (posts.length === 0) throw new Error("No posts");
+      activeAccount().posts.unshift(...posts);
+      saveState();
+      render();
+    } catch (error) {
+      window.alert("読み込めないMarkdownです。");
+    } finally {
+      event.target.value = "";
+    }
+  });
+  reader.readAsText(file);
+}
+
+function stateToMarkdown() {
+  const lines = ["# ひとりごったー", ""];
+  state.accounts.forEach((account) => {
+    lines.push(`## ${account.name}`, "");
+    account.posts
+      .slice()
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .forEach((post) => {
+        lines.push(`### ${post.shortId}`);
+        lines.push(`- createdAt: ${post.createdAt}`);
+        lines.push(`- pinned: ${post.pinned ? "true" : "false"}`);
+        if (post.parentId) lines.push(`- parentId: ${post.parentId}`);
+        lines.push("");
+        lines.push(post.text);
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+      });
+  });
+  return lines.join("\n");
+}
+
+function markdownToPosts(markdown) {
+  const chunks = markdown
+    .split(/\n---+\n/g)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+
+  const source = chunks.length > 1 ? chunks : [markdown.trim()];
+  return source
+    .map((chunk) => {
+      const lines = chunk.split(/\r?\n/);
+      const createdAtLine = lines.find((line) => line.startsWith("- createdAt:"));
+      const pinnedLine = lines.find((line) => line.startsWith("- pinned:"));
+      const parentLine = lines.find((line) => line.startsWith("- parentId:"));
+      const bodyStart = lines.findIndex((line, index) => index > 0 && line.trim() === "");
+      const text = lines
+        .slice(bodyStart >= 0 ? bodyStart + 1 : 0)
+        .filter((line) => !line.startsWith("### "))
+        .join("\n")
+        .trim();
+      if (!text) return null;
+      const id = crypto.randomUUID();
+      return {
+        id,
+        shortId: makeShortId(id),
+        text: text.slice(0, maxPostLength),
+        pinned: pinnedLine?.includes("true") || false,
+        parentId: parentLine ? parentLine.replace("- parentId:", "").trim() || null : null,
+        createdAt: createdAtLine
+          ? new Date(createdAtLine.replace("- createdAt:", "").trim()).toISOString()
+          : new Date().toISOString(),
+      };
+    })
+    .filter(Boolean);
+}
+
+function downloadText(text, filename, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function makeShortId(id) {
+  return id.replace(/-/g, "").slice(0, 8);
 }
 
 function escapeHtml(value) {

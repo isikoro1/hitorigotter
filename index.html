@@ -3,31 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="hitorigotter web is a local-only microblog for private thoughts."
-    />
-    <title>hitorigotter web</title>
+    <meta name="description" content="ひとりごったー web" />
+    <title>ひとりごったー</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <main class="main-pane">
         <header class="topbar">
-          <strong id="activeAccountLabel">hitorigotter</strong>
+          <strong id="activeAccountLabel">ひとりごったー</strong>
         </header>
 
         <section class="screen" id="homeScreen">
           <section class="composer" aria-label="投稿作成">
             <textarea
               id="postInput"
-              maxlength="280"
+              maxlength="1000"
               rows="5"
-              placeholder="今だけの考えを書く。#タグ も使えます。"
+              placeholder="今だけの考えを書く。#タグ、- リスト、- [ ] todo も使えます。"
             ></textarea>
             <div class="composer-foot">
               <div class="post-actions">
-                <span id="charCount">0 / 280</span>
+                <span id="charCount">0 / 1000</span>
                 <button class="primary-button" id="postButton" type="button">投稿</button>
               </div>
             </div>
@@ -37,14 +34,21 @@
         </section>
 
         <section class="screen" id="searchScreen" hidden>
-          <section class="tools-row" aria-label="検索">
+          <section class="tools-row search-tools" aria-label="検索">
             <label class="search-field">
               <span class="sr-only">検索</span>
-              <input id="searchInput" type="search" placeholder="本文またはタグを検索" />
+              <input id="searchInput" type="search" placeholder="本文、タグ、IDを検索" />
             </label>
             <select id="sortSelect" aria-label="並び順">
               <option value="newest">新しい順</option>
               <option value="oldest">古い順</option>
+            </select>
+            <input id="dateInput" type="date" aria-label="日付" />
+            <select id="dateModeSelect" aria-label="日付フィルター">
+              <option value="any">日付指定なし</option>
+              <option value="on">選択日</option>
+              <option value="since">選択日以降</option>
+              <option value="until">選択日以前</option>
             </select>
           </section>
 
@@ -67,6 +71,21 @@
         </section>
 
         <section class="screen settings-screen" id="settingsScreen" hidden>
+          <label class="setting-row">
+            <span>テーマ</span>
+            <select id="themeSelect">
+              <option value="default">ひとりごったー</option>
+              <option value="terminal">ターミナル風</option>
+              <option value="dragon">ドラクエ風</option>
+              <option value="line">LINE風</option>
+            </select>
+          </label>
+
+          <label class="setting-row checkbox-row">
+            <input id="enterToPostInput" type="checkbox" />
+            <span>Enterで投稿する</span>
+          </label>
+
           <button class="settings-button" id="exportButton" type="button">
             <span aria-hidden="true">↓</span>
             <span>JSONを書き出す</span>
@@ -75,6 +94,15 @@
             <span aria-hidden="true">↑</span>
             <span>JSONを読み込む</span>
             <input id="importInput" type="file" accept="application/json" />
+          </label>
+          <button class="settings-button" id="exportMarkdownButton" type="button">
+            <span aria-hidden="true">↓</span>
+            <span>Markdownを書き出す</span>
+          </button>
+          <label class="settings-button file-button">
+            <span aria-hidden="true">↑</span>
+            <span>Markdownを読み込む</span>
+            <input id="importMarkdownInput" type="file" accept=".md,text/markdown,text/plain" />
           </label>
         </section>
       </main>
@@ -111,18 +139,21 @@
             <div class="avatar small post-avatar" aria-hidden="true"></div>
             <div class="post-meta">
               <strong class="post-name"></strong>
+              <a class="post-id-link" href="#"></a>
             </div>
             <time class="post-time"></time>
             <details class="post-menu">
               <summary aria-label="投稿メニュー">⋯</summary>
               <div class="post-menu-panel">
+                <button class="reply-button" type="button">返信</button>
                 <button class="pin-button" type="button">固定</button>
                 <button class="delete-button danger" type="button">削除</button>
               </div>
             </details>
           </header>
-          <p class="post-text"></p>
+          <div class="post-text md-content"></div>
           <div class="post-tags"></div>
+          <section class="reply-list"></section>
         </div>
       </article>
     </template>
