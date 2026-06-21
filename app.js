@@ -123,10 +123,6 @@ function bindEvents() {
   });
   elements.hideAuthorNameInput.addEventListener("change", () => {
     state.settings.hideAuthorName = elements.hideAuthorNameInput.checked;
-    if (!state.settings.hideAuthorName) {
-      state.settings.hideAvatars = false;
-      elements.hideAvatarsInput.checked = false;
-    }
     saveState();
     applySettingsClasses();
   });
