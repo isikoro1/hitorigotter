@@ -377,6 +377,7 @@ function renderPost(post, showContext = false) {
     pinButton.textContent = post.pinned ? "固定を外す" : "固定";
     pinButton.addEventListener("click", () => togglePinPost(post.id));
     node.querySelector(".edit-button").addEventListener("click", () => editPost(post.id));
+    node.querySelector(".quote-button").addEventListener("click", () => quotePost(post.shortId));
     node.querySelector(".reply-button").addEventListener("click", () => replyToPost(post.id));
     node.querySelector(".delete-button").addEventListener("click", () => deletePost(post.id));
 
@@ -515,6 +516,15 @@ function replyToPost(parentId) {
   const text = window.prompt("返信を書く");
   if (!text) return;
   addPost(parentId, text);
+}
+
+function quotePost(shortId) {
+  setScreen("home");
+  const prefix = elements.postInput.value.trim() ? "\n" : "";
+  elements.postInput.value = `${elements.postInput.value}${prefix}>>${shortId}\n`;
+  elements.postInput.focus();
+  elements.postInput.setSelectionRange(elements.postInput.value.length, elements.postInput.value.length);
+  renderComposerState();
 }
 
 function editPost(id) {
