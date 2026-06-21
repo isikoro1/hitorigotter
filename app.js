@@ -227,7 +227,6 @@ function render() {
   renderAccounts();
   renderAnalytics();
   renderSettings();
-  window.setTimeout(focusHashPost, 0);
 }
 
 function setScreen(screen) {
