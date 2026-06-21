@@ -491,6 +491,10 @@ body[data-theme="terminal"] .bottom-nav {
   font-size: 0.9rem;
 }
 
+body.hide-avatars .avatar {
+  display: none;
+}
+
 .post-meta {
   display: grid;
   min-width: 0;

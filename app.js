@@ -7,6 +7,7 @@ const defaultState = {
   settings: {
     enterToPost: false,
     theme: "default",
+    hideAvatars: false,
   },
   accounts: [
     {
@@ -57,6 +58,7 @@ const elements = {
   weekdayChart: document.querySelector("#weekdayChart"),
   wordList: document.querySelector("#wordList"),
   enterToPostInput: document.querySelector("#enterToPostInput"),
+  hideAvatarsInput: document.querySelector("#hideAvatarsInput"),
   themeSelect: document.querySelector("#themeSelect"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
@@ -110,6 +112,11 @@ function bindEvents() {
     state.settings.enterToPost = elements.enterToPostInput.checked;
     saveState();
   });
+  elements.hideAvatarsInput.addEventListener("change", () => {
+    state.settings.hideAvatars = elements.hideAvatarsInput.checked;
+    saveState();
+    applySettingsClasses();
+  });
   elements.themeSelect.addEventListener("change", () => {
     state.settings.theme = elements.themeSelect.value;
     saveState();
@@ -144,6 +151,7 @@ function normalizeState(value) {
           : accounts[0].id,
         settings: {
           enterToPost: Boolean(value.settings?.enterToPost),
+          hideAvatars: Boolean(value.settings?.hideAvatars),
           theme: normalizeTheme(value.settings?.theme),
         },
         accounts,
@@ -212,6 +220,7 @@ function saveState() {
 
 function render() {
   applyTheme();
+  applySettingsClasses();
   renderScreens();
   renderComposerState();
   renderTimeline();
@@ -250,11 +259,16 @@ function renderScreens() {
 
 function renderSettings() {
   elements.enterToPostInput.checked = state.settings.enterToPost;
+  elements.hideAvatarsInput.checked = state.settings.hideAvatars;
   elements.themeSelect.value = state.settings.theme;
 }
 
 function applyTheme() {
   document.body.dataset.theme = state.settings.theme;
+}
+
+function applySettingsClasses() {
+  document.body.classList.toggle("hide-avatars", state.settings.hideAvatars);
 }
 
 function activeAccount() {
