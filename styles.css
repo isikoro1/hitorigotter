@@ -269,7 +269,42 @@ textarea:focus {
 }
 
 body[data-theme="line"] .post-card {
-  border-radius: 18px;
+  width: min(86%, 620px);
+  margin-left: auto;
+  grid-template-columns: minmax(0, 1fr);
+  border: 0;
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 8px 22px rgba(24, 50, 76, 0.1);
+}
+
+body[data-theme="line"] .post-card::after {
+  position: absolute;
+  right: -8px;
+  bottom: 14px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 10px solid var(--panel);
+  content: "";
+}
+
+body[data-theme="line"] .post-line {
+  display: none;
+}
+
+body[data-theme="line"] .post-content {
+  padding: 14px 16px;
+}
+
+body[data-theme="line"] .post-header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+body[data-theme="line"] .avatar {
+  border: 0;
+  box-shadow: none;
 }
 
 body[data-theme="dragon"] .post-card,
@@ -280,6 +315,88 @@ body[data-theme="dragon"] .account-item,
 body[data-theme="dragon"] .settings-button,
 body[data-theme="dragon"] .bottom-nav {
   border-width: 2px;
+  box-shadow: none;
+}
+
+body[data-theme="dragon"] .post-card {
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: 0;
+  background: #08081a;
+}
+
+body[data-theme="dragon"] .post-card::before {
+  display: block;
+  padding: 5px 10px;
+  border-bottom: 2px solid var(--line);
+  color: var(--accent-strong);
+  content: "COMMAND";
+  font-size: 0.78rem;
+}
+
+body[data-theme="dragon"] .post-line {
+  display: none;
+}
+
+body[data-theme="dragon"] .post-content {
+  padding: 18px;
+}
+
+body[data-theme="dragon"] .post-menu summary,
+body[data-theme="dragon"] .post-menu button,
+body[data-theme="dragon"] .bottom-nav-button,
+body[data-theme="dragon"] .primary-button,
+body[data-theme="dragon"] .account-delete,
+body[data-theme="dragon"] .account-select {
+  border-width: 2px;
+  border-radius: 0;
+}
+
+body[data-theme="dragon"] .avatar {
+  border-color: var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body[data-theme="terminal"] .post-card {
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: 0;
+  border-left: 4px solid var(--accent);
+  background: rgba(13, 31, 22, 0.96);
+  box-shadow: none;
+}
+
+body[data-theme="terminal"] .post-line {
+  display: none;
+}
+
+body[data-theme="terminal"] .post-content {
+  padding: 14px 16px;
+}
+
+body[data-theme="terminal"] .post-header::before {
+  color: var(--accent);
+  content: "$";
+  font-weight: 800;
+}
+
+body[data-theme="terminal"] .avatar {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--accent);
+}
+
+body[data-theme="terminal"] .composer,
+body[data-theme="terminal"] .tools-row,
+body[data-theme="terminal"] .account-composer,
+body[data-theme="terminal"] .account-item,
+body[data-theme="terminal"] .settings-button,
+body[data-theme="terminal"] .setting-row,
+body[data-theme="terminal"] .bottom-nav {
+  border-radius: 0;
   box-shadow: none;
 }
 
