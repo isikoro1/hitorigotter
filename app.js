@@ -8,6 +8,7 @@ const defaultState = {
     enterToPost: false,
     theme: "default",
     hideAvatars: false,
+    hideAuthorName: false,
   },
   accounts: [
     {
@@ -59,6 +60,7 @@ const elements = {
   wordList: document.querySelector("#wordList"),
   enterToPostInput: document.querySelector("#enterToPostInput"),
   hideAvatarsInput: document.querySelector("#hideAvatarsInput"),
+  hideAuthorNameInput: document.querySelector("#hideAuthorNameInput"),
   themeSelect: document.querySelector("#themeSelect"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
@@ -117,6 +119,11 @@ function bindEvents() {
     saveState();
     applySettingsClasses();
   });
+  elements.hideAuthorNameInput.addEventListener("change", () => {
+    state.settings.hideAuthorName = elements.hideAuthorNameInput.checked;
+    saveState();
+    applySettingsClasses();
+  });
   elements.themeSelect.addEventListener("change", () => {
     state.settings.theme = elements.themeSelect.value;
     saveState();
@@ -152,6 +159,7 @@ function normalizeState(value) {
         settings: {
           enterToPost: Boolean(value.settings?.enterToPost),
           hideAvatars: Boolean(value.settings?.hideAvatars),
+          hideAuthorName: Boolean(value.settings?.hideAuthorName),
           theme: normalizeTheme(value.settings?.theme),
         },
         accounts,
@@ -259,6 +267,7 @@ function renderScreens() {
 function renderSettings() {
   elements.enterToPostInput.checked = state.settings.enterToPost;
   elements.hideAvatarsInput.checked = state.settings.hideAvatars;
+  elements.hideAuthorNameInput.checked = state.settings.hideAuthorName;
   elements.themeSelect.value = state.settings.theme;
 }
 
@@ -268,6 +277,7 @@ function applyTheme() {
 
 function applySettingsClasses() {
   document.body.classList.toggle("hide-avatars", state.settings.hideAvatars);
+  document.body.classList.toggle("hide-author-name", state.settings.hideAuthorName);
 }
 
 function activeAccount() {
