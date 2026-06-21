@@ -80,6 +80,14 @@ function bindEvents() {
     if (modifierSubmit || enterSubmit) {
       event.preventDefault();
       addPost();
+      return;
+    }
+    if (event.key === "Enter") {
+      const continuation = getListContinuation();
+      if (continuation !== false) {
+        event.preventDefault();
+        if (continuation) insertComposerText(continuation, { forceInline: true });
+      }
     }
   });
 
@@ -256,17 +264,36 @@ function renderComposerState() {
   elements.postButton.disabled = length === 0 || length > maxPostLength;
 }
 
-function insertComposerText(text) {
+function insertComposerText(text, options = {}) {
   const input = elements.postInput;
   const start = input.selectionStart ?? input.value.length;
   const end = input.selectionEnd ?? input.value.length;
-  const needsLineBreak = start > 0 && input.value[start - 1] !== "\n";
+  const needsLineBreak = !options.forceInline && start > 0 && input.value[start - 1] !== "\n";
   const insertText = `${needsLineBreak ? "\n" : ""}${text}`;
   input.value = `${input.value.slice(0, start)}${insertText}${input.value.slice(end)}`;
   const cursor = start + insertText.length;
   input.focus();
   input.setSelectionRange(cursor, cursor);
   renderComposerState();
+}
+
+function getListContinuation() {
+  const input = elements.postInput;
+  const cursor = input.selectionStart ?? input.value.length;
+  const beforeCursor = input.value.slice(0, cursor);
+  const currentLine = beforeCursor.split("\n").pop() ?? "";
+
+  if (/^\s*-\s+\[( |x|X)\]\s*$/.test(currentLine) || /^\s*-\s*$/.test(currentLine)) {
+    const lineStart = beforeCursor.lastIndexOf("\n") + 1;
+    input.value = `${input.value.slice(0, lineStart)}${input.value.slice(cursor)}`;
+    input.setSelectionRange(lineStart, lineStart);
+    renderComposerState();
+    return "";
+  }
+
+  if (/^\s*-\s+\[( |x|X)\]\s+/.test(currentLine)) return "\n- [ ] ";
+  if (/^\s*-\s+/.test(currentLine)) return "\n- ";
+  return false;
 }
 
 function addPost(parentId = null, textOverride = "") {
@@ -322,7 +349,7 @@ function renderPost(post, showContext = false) {
   node.querySelector(".post-name").textContent = activeAccount().name;
 
   const idLink = node.querySelector(".post-id-link");
-  idLink.textContent = `#${post.shortId}`;
+  idLink.textContent = `>>${post.shortId}`;
   idLink.href = `#post-${post.shortId}`;
   idLink.addEventListener("click", () => copyPostLink(post.shortId));
 
@@ -401,7 +428,7 @@ function renderMarkdownish(text, container) {
 }
 
 function appendInlineText(parent, text) {
-  const pattern = /(#([A-Za-z0-9_\u3040-\u30ff\u3400-\u9fff-]+)|@?post:([A-Za-z0-9-]+)|#([A-Za-z0-9]{4,12}))/g;
+  const pattern = /(#([A-Za-z0-9_\u3040-\u30ff\u3400-\u9fff-]+)|>>([0-9]+)|@?post:([A-Za-z0-9-]+))/g;
   let lastIndex = 0;
   for (const match of text.matchAll(pattern)) {
     parent.append(document.createTextNode(text.slice(lastIndex, match.index)));
@@ -437,7 +464,7 @@ function getVisiblePosts() {
 
       if (currentScreen === "search") {
         if (query) {
-          const haystack = `${post.shortId} ${post.text} ${extractTags(post.text).join(" ")}`.toLowerCase();
+          const haystack = `${post.shortId} >>${post.shortId} ${post.text} ${extractTags(post.text).join(" ")}`.toLowerCase();
           if (!haystack.includes(query.replace(/^#/, "")) && !haystack.includes(query)) {
             return false;
           }
