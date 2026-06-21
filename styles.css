@@ -164,7 +164,10 @@ button {
   align-items: center;
 }
 
-.post-actions,
+.post-actions {
+  gap: 8px;
+}
+
 .insert-actions {
   gap: 8px;
   margin-right: auto;
@@ -466,6 +469,24 @@ body[data-theme="terminal"] .bottom-nav {
   padding: 16px;
 }
 
+body[data-post-density="compact"] .post-content {
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+body[data-post-density="compact"] .md-content {
+  line-height: 1.45;
+}
+
+body[data-post-density="relaxed"] .post-content {
+  gap: 18px;
+  padding: 24px;
+}
+
+body[data-post-density="relaxed"] .md-content {
+  line-height: 1.9;
+}
+
 .post-header {
   gap: 10px;
 }
@@ -596,6 +617,10 @@ body.hide-author-name .post-name {
   vertical-align: text-bottom;
 }
 
+.md-content .todo-item {
+  list-style: none;
+}
+
 .md-content a,
 .inline-tag {
   color: var(--post-link, var(--accent-strong));
@@ -700,6 +725,7 @@ body.hide-author-name .post-name {
 .analytics-panel {
   display: grid;
   gap: 12px;
+  min-width: 0;
   padding: 14px;
 }
 
@@ -748,12 +774,17 @@ body.hide-author-name .post-name {
 }
 
 .word-chip {
+  max-width: 100%;
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--panel-strong);
   color: var(--accent-strong);
   padding: 0 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
 }
 
 .analytics-empty {

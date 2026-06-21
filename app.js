@@ -7,6 +7,7 @@ const defaultState = {
   settings: {
     enterToPost: false,
     theme: "default",
+    postDensity: "normal",
     hideAvatars: false,
     hideAuthorName: false,
   },
@@ -62,6 +63,7 @@ const elements = {
   hideAvatarsInput: document.querySelector("#hideAvatarsInput"),
   hideAuthorNameInput: document.querySelector("#hideAuthorNameInput"),
   themeSelect: document.querySelector("#themeSelect"),
+  postDensitySelect: document.querySelector("#postDensitySelect"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
   exportMarkdownButton: document.querySelector("#exportMarkdownButton"),
@@ -129,6 +131,11 @@ function bindEvents() {
     saveState();
     applyTheme();
   });
+  elements.postDensitySelect.addEventListener("change", () => {
+    state.settings.postDensity = normalizePostDensity(elements.postDensitySelect.value);
+    saveState();
+    applySettingsClasses();
+  });
   elements.exportButton.addEventListener("click", exportState);
   elements.importInput.addEventListener("change", importState);
   elements.exportMarkdownButton.addEventListener("click", exportMarkdown);
@@ -161,6 +168,7 @@ function normalizeState(value) {
           hideAvatars: Boolean(value.settings?.hideAvatars),
           hideAuthorName: Boolean(value.settings?.hideAuthorName),
           theme: normalizeTheme(value.settings?.theme),
+          postDensity: normalizePostDensity(value.settings?.postDensity),
         },
         accounts,
       };
@@ -222,6 +230,10 @@ function normalizeTheme(value) {
   return ["default", "terminal", "dragon", "line"].includes(value) ? value : "default";
 }
 
+function normalizePostDensity(value) {
+  return ["compact", "normal", "relaxed"].includes(value) ? value : "normal";
+}
+
 function saveState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
 }
@@ -269,6 +281,7 @@ function renderSettings() {
   elements.hideAvatarsInput.checked = state.settings.hideAvatars;
   elements.hideAuthorNameInput.checked = state.settings.hideAuthorName;
   elements.themeSelect.value = state.settings.theme;
+  elements.postDensitySelect.value = state.settings.postDensity;
 }
 
 function applyTheme() {
@@ -278,6 +291,7 @@ function applyTheme() {
 function applySettingsClasses() {
   document.body.classList.toggle("hide-avatars", state.settings.hideAvatars);
   document.body.classList.toggle("hide-author-name", state.settings.hideAuthorName);
+  document.body.dataset.postDensity = state.settings.postDensity;
 }
 
 function activeAccount() {
@@ -433,6 +447,7 @@ function renderMarkdownish(post, container) {
       }
       const li = document.createElement("li");
       if (todoMatch) {
+        li.className = "todo-item";
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = todoMatch[1].toLowerCase() === "x";
