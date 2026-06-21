@@ -78,7 +78,7 @@ function bindEvents() {
     }
   });
 
-  elements.postButton.addEventListener("click", addPost);
+  elements.postButton.addEventListener("click", () => addPost());
   elements.insertListButton.addEventListener("click", () => insertComposerText("- "));
   elements.insertTodoButton.addEventListener("click", () => insertComposerText("- [ ] "));
   elements.insertTagButton.addEventListener("click", () => insertComposerText("#"));
@@ -167,12 +167,16 @@ function normalizeAccount(account) {
 function normalizePost(post) {
   if (!post) return null;
   const id = String(post.id || crypto.randomUUID());
+  const parentId =
+    typeof post.parentId === "string" && post.parentId !== "[object Object]"
+      ? post.parentId
+      : null;
   return {
     id,
     shortId: String(post.shortId || ""),
     text: String(post.text || "").slice(0, maxPostLength),
     pinned: Boolean(post.pinned),
-    parentId: post.parentId ? String(post.parentId) : null,
+    parentId,
     createdAt: Number.isNaN(new Date(post.createdAt).getTime())
       ? new Date().toISOString()
       : new Date(post.createdAt).toISOString(),

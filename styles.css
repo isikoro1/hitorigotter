@@ -150,6 +150,7 @@ button {
 .post-actions,
 .insert-actions {
   gap: 8px;
+  margin-right: auto;
 }
 
 .composer,
