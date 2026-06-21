@@ -313,11 +313,12 @@ function renderPost(post, showContext = false) {
     tagContainer.prepend(context);
   }
 
-  const pinButton = node.querySelector(".pin-button");
-  pinButton.textContent = post.pinned ? "固定を外す" : "固定";
-  pinButton.addEventListener("click", () => togglePinPost(post.id));
-  node.querySelector(".reply-button").addEventListener("click", () => replyToPost(post.id));
-  node.querySelector(".delete-button").addEventListener("click", () => deletePost(post.id));
+    const pinButton = node.querySelector(".pin-button");
+    pinButton.textContent = post.pinned ? "固定を外す" : "固定";
+    pinButton.addEventListener("click", () => togglePinPost(post.id));
+    node.querySelector(".edit-button").addEventListener("click", () => editPost(post.id));
+    node.querySelector(".reply-button").addEventListener("click", () => replyToPost(post.id));
+    node.querySelector(".delete-button").addEventListener("click", () => deletePost(post.id));
 
   const replies = getReplies(post.id);
   const replyList = node.querySelector(".reply-list");
@@ -439,6 +440,18 @@ function replyToPost(parentId) {
   const text = window.prompt("返信を書く");
   if (!text) return;
   addPost(parentId, text);
+}
+
+function editPost(id) {
+  const post = activeAccount().posts.find((item) => item.id === id);
+  if (!post) return;
+  const text = window.prompt("投稿を編集", post.text);
+  if (text === null) return;
+  const nextText = text.trim();
+  if (!nextText) return;
+  post.text = nextText.slice(0, maxPostLength);
+  saveState();
+  renderTimeline();
 }
 
 function searchByTag(tag) {
