@@ -62,8 +62,14 @@ const elements = {
   importInput: document.querySelector("#importInput"),
   exportMarkdownButton: document.querySelector("#exportMarkdownButton"),
   importMarkdownInput: document.querySelector("#importMarkdownInput"),
+  textModal: document.querySelector("#textModal"),
+  textModalTitle: document.querySelector("#textModalTitle"),
+  textModalInput: document.querySelector("#textModalInput"),
+  textModalSaveButton: document.querySelector("#textModalSaveButton"),
   postTemplate: document.querySelector("#postTemplate"),
 };
+
+let modalSaveHandler = null;
 
 bindEvents();
 render();
@@ -513,9 +519,12 @@ function getReplies(parentId) {
 }
 
 function replyToPost(parentId) {
-  const text = window.prompt("返信を書く");
-  if (!text) return;
-  addPost(parentId, text);
+  openTextModal({
+    title: "返信を書く",
+    value: "",
+    submitLabel: "返信",
+    onSave: (text) => addPost(parentId, text),
+  });
 }
 
 function quotePost(shortId) {
@@ -530,14 +539,38 @@ function quotePost(shortId) {
 function editPost(id) {
   const post = activeAccount().posts.find((item) => item.id === id);
   if (!post) return;
-  const text = window.prompt("投稿を編集", post.text);
-  if (text === null) return;
-  const nextText = text.trim();
-  if (!nextText) return;
-  post.text = nextText.slice(0, maxPostLength);
-  saveState();
-  render();
+  openTextModal({
+    title: "投稿を編集",
+    value: post.text,
+    submitLabel: "保存",
+    onSave: (text) => {
+      post.text = text.slice(0, maxPostLength);
+      saveState();
+      render();
+    },
+  });
 }
+
+function openTextModal({ title, value, submitLabel, onSave }) {
+  elements.textModalTitle.textContent = title;
+  elements.textModalInput.value = value;
+  elements.textModalSaveButton.textContent = submitLabel;
+  modalSaveHandler = onSave;
+  elements.textModal.showModal();
+  window.setTimeout(() => elements.textModalInput.focus(), 0);
+}
+
+elements.textModal.addEventListener("close", () => {
+  if (elements.textModal.returnValue !== "default" || !modalSaveHandler) {
+    modalSaveHandler = null;
+    return;
+  }
+  const text = elements.textModalInput.value.trim();
+  const handler = modalSaveHandler;
+  modalSaveHandler = null;
+  if (!text) return;
+  handler(text);
+});
 
 function searchByTag(tag) {
   elements.searchInput.value = `#${tag}`;

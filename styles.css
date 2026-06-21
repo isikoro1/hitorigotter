@@ -785,6 +785,57 @@ body[data-theme="terminal"] .bottom-nav {
   cursor: pointer;
 }
 
+.text-modal {
+  width: min(620px, calc(100% - 28px));
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.text-modal::backdrop {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.text-modal-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.text-modal-head,
+.text-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.modal-icon-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.text-modal-actions {
+  justify-content: flex-end;
+}
+
+.modal-cancel-button {
+  min-height: 36px;
+  box-shadow: none;
+}
+
 .settings-button span:first-child {
   display: grid;
   place-items: center;

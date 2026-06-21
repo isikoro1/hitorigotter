@@ -171,6 +171,22 @@
       </button>
     </nav>
 
+    <dialog class="text-modal" id="textModal">
+      <form method="dialog" class="text-modal-panel">
+        <header class="text-modal-head">
+          <strong id="textModalTitle">入力</strong>
+          <button class="modal-icon-button" id="textModalCloseButton" value="cancel" type="submit" aria-label="閉じる">
+            ×
+          </button>
+        </header>
+        <textarea id="textModalInput" maxlength="1000" rows="8"></textarea>
+        <footer class="text-modal-actions">
+          <button class="settings-button modal-cancel-button" value="cancel" type="submit">キャンセル</button>
+          <button class="primary-button" id="textModalSaveButton" value="default" type="submit">保存</button>
+        </footer>
+      </form>
+    </dialog>
+
     <template id="postTemplate">
       <article class="post-card">
         <div class="post-line" aria-hidden="true"></div>
